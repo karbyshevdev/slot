@@ -72,21 +72,23 @@
                     android:layout_centerInParent="true"
                     android:orientation="horizontal">
 
-                    <ImageView
+                    <com.karbyshev.slot.SpinnerView
+                        android:id="@+id/spinner1"
                         android:layout_width="80dp"
                         android:layout_height="210dp"
                         android:src="@drawable/spinner" />
 
-                    <ImageView
+                    <com.karbyshev.slot.SpinnerView
+                        android:id="@+id/spinner2"
                         android:layout_width="80dp"
                         android:layout_height="210dp"
                         android:src="@drawable/spinner" />
 
-                    <ImageView
+                    <com.karbyshev.slot.SpinnerView
+                        android:id="@+id/spinner3"
                         android:layout_width="80dp"
                         android:layout_height="210dp"
                         android:src="@drawable/spinner" />
-
                 </LinearLayout>
 
                 <ImageView
