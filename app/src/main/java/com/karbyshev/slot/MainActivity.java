@@ -3,8 +3,14 @@ package com.karbyshev.slot;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.Dialog;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.ButtonBarLayout;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
@@ -20,6 +26,8 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity {
+    private static int TIMEOUT = 1500;
+
     @BindView(R.id.settingsButton) Button mSettingsButton;
     @BindView(R.id.minusButton) Button mMinusButton;
     @BindView(R.id.plusButton) Button mPlusButton;
@@ -39,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
 
     private List<SpinnerView> spinnerViews;
 
+    private Dialog winDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
         mJackpotTextView.setText(String.valueOf(jackpot));
         mMyCoinsTextView.setText(String.valueOf(myCoins));
         mBetTextView.setText(String.valueOf(bet));
+
+        winDialog = new Dialog(this);
 
         spinnerViews = Arrays.asList(mSpinner1, mSpinner2, mSpinner3);
 
@@ -86,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         mSpinButton.setClickable(false);
         int maxScroll = 0;
 
-        for (SpinnerView spinnerView: spinnerViews){
+        for (SpinnerView spinnerView : spinnerViews) {
             spinnerView.setSequence(getRandomSequence());
             maxScroll = Math.max(maxScroll, spinnerView.getMaxScrollPosition());
         }
@@ -109,55 +121,55 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animator animation) {
-                long tempXbet = bet / 5;
+                long coefficient = bet / 5;
                 int selectedImage1 = mSpinner1.getResultedImageIndex();
                 int selectedImage2 = mSpinner2.getResultedImageIndex();
                 int selectedImage3 = mSpinner3.getResultedImageIndex();
 
                 myCoins -= bet;
 
-                if (isNoCombinations(selectedImage1, selectedImage2, selectedImage3)){
+                if (isNoCombinations(selectedImage1, selectedImage2, selectedImage3)) {
                     jackpot += bet;
                 }
 
-                if (isTwoHorseshoes(selectedImage1, selectedImage2, selectedImage3, 6)){
-                    myCoins += 50 * tempXbet;
+                if (isTwoHorseshoes(selectedImage1, selectedImage2, selectedImage3, 6)) {
+                    myCoins += 50 * coefficient;
                     jackpot -= bet;
-                    Toast.makeText(MainActivity.this, "Win: " + 50 * tempXbet, Toast.LENGTH_SHORT).show();
-                } else if (isOneHorseshoe(selectedImage1, selectedImage2, selectedImage3, 6)){
-                    myCoins += 25 * tempXbet;
+                    showWinDialog(50 * coefficient);
+                } else if (isOneHorseshoe(selectedImage1, selectedImage2, selectedImage3, 6)) {
+                    myCoins += 25 * coefficient;
                     jackpot -= bet;
-                    Toast.makeText(MainActivity.this, "Win: " + 25 * tempXbet, Toast.LENGTH_SHORT).show();
+                    showWinDialog(25 * coefficient);
                 }
 
-                if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 6)){
-                    Toast.makeText(MainActivity.this, "JACKPOT", Toast.LENGTH_SHORT).show();
+                if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 6)) {
                     myCoins += jackpot;
                     jackpot = 0;
-                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 5)){
-                    myCoins += 75 * tempXbet;
-                    Toast.makeText(MainActivity.this, "Win: " + 75 * tempXbet, Toast.LENGTH_SHORT).show();
-                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 4)){
-                    myCoins += 50 * tempXbet;
-                    Toast.makeText(MainActivity.this, "Win: " + 50 * tempXbet, Toast.LENGTH_SHORT).show();
-                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 3)){
-                    myCoins += 35 * tempXbet;
-                    Toast.makeText(MainActivity.this, "Win: " + 35 * tempXbet, Toast.LENGTH_SHORT).show();
-                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 2)){
-                    myCoins += 25 * tempXbet;
-                    Toast.makeText(MainActivity.this, "Win: " + 25 * tempXbet, Toast.LENGTH_SHORT).show();
-                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 1)){
-                    myCoins += 15 * tempXbet;
-                    Toast.makeText(MainActivity.this, "Win: " + 15 * tempXbet, Toast.LENGTH_SHORT).show();
-                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 0)){
-                    myCoins += 10 * tempXbet;
-                    Toast.makeText(MainActivity.this, "Win: " + 10 * tempXbet, Toast.LENGTH_SHORT).show();
+                    showWinJackpot(jackpot);
+                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 5)) {
+                    myCoins += 75 * coefficient;
+                    showWinDialog(75 *coefficient);
+                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 4)) {
+                    myCoins += 50 * coefficient;
+                    showWinDialog(50 * coefficient);
+                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 3)) {
+                    myCoins += 35 * coefficient;
+                    showWinDialog(35 * coefficient);
+                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 2)) {
+                    myCoins += 25 * coefficient;
+                    showWinDialog(25 * coefficient);
+                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 1)) {
+                    myCoins += 15 * coefficient;
+                    showWinDialog(15 * coefficient);
+                } else if (isWinCombinations(selectedImage1, selectedImage2, selectedImage3, 0)) {
+                    myCoins += 10 * coefficient;
+                    showWinDialog(10 * coefficient);
                 }
 
-                mJackpotTextView.setText(String.valueOf(jackpot));
-                mMyCoinsTextView.setText(String.valueOf(myCoins));
                 bet = 5;
                 mBetTextView.setText(String.valueOf(bet));
+                mJackpotTextView.setText(String.valueOf(jackpot));
+                mMyCoinsTextView.setText(String.valueOf(myCoins));
                 mPlusButton.setClickable(true);
                 mSpinButton.setClickable(true);
             }
@@ -187,49 +199,77 @@ public class MainActivity extends AppCompatActivity {
         return sequence;
     }
 
-    private void startPosition(){
+    private void startPosition() {
         ArrayList<Integer> start = new ArrayList<>();
         start.add(6);
         start.add(5);
         start.add(4);
-        for (SpinnerView spinnerView: spinnerViews){
+        for (SpinnerView spinnerView : spinnerViews) {
             spinnerView.setSequence(start);
         }
     }
 
-    private boolean isWinCombinations(int selectedImage1, int selectedImage2, int selectedImage3, int positionOfImage){
-        if (selectedImage1 == positionOfImage && selectedImage2 == positionOfImage && selectedImage3 == positionOfImage){
+    private boolean isWinCombinations(int selectedImage1, int selectedImage2, int selectedImage3, int positionOfImage) {
+        if (selectedImage1 == positionOfImage && selectedImage2 == positionOfImage && selectedImage3 == positionOfImage) {
             return true;
         } else {
             return false;
         }
     }
 
-    private boolean isTwoHorseshoes(int selectedImage1, int selectedImage2, int selectedImage3, int positionOfImage){
+    private boolean isTwoHorseshoes(int selectedImage1, int selectedImage2, int selectedImage3, int positionOfImage) {
         if ((selectedImage1 == positionOfImage && selectedImage2 == positionOfImage) ||
                 (selectedImage1 == positionOfImage && selectedImage3 == positionOfImage) ||
-                (selectedImage3 == positionOfImage && selectedImage2 == positionOfImage)){
+                (selectedImage3 == positionOfImage && selectedImage2 == positionOfImage)) {
             return true;
         } else {
             return false;
         }
     }
 
-    private boolean isOneHorseshoe(int selectedImage1, int selectedImage2, int selectedImage3, int positionOfImage){
+    private boolean isOneHorseshoe(int selectedImage1, int selectedImage2, int selectedImage3, int positionOfImage) {
         if (selectedImage1 == positionOfImage ||
                 selectedImage2 == positionOfImage ||
-                selectedImage3 == positionOfImage){
+                selectedImage3 == positionOfImage) {
             return true;
         } else {
             return false;
         }
     }
 
-    private boolean isNoCombinations(int selectedImage1, int selectedImage2, int selectedImage3){
-        if (selectedImage1 != selectedImage2 || selectedImage2 != selectedImage3){
+    private boolean isNoCombinations(int selectedImage1, int selectedImage2, int selectedImage3) {
+        if (selectedImage1 != selectedImage2 || selectedImage2 != selectedImage3) {
             return true;
         } else {
             return false;
         }
+    }
+
+    private void showWinDialog(long coins) {
+        winDialog.setContentView(R.layout.popup);
+        TextView mPopupTextView = (TextView) winDialog.findViewById(R.id.popupTextView);
+        winDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        mPopupTextView.setText("You win:\n" + coins);
+        winDialog.show();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                winDialog.dismiss();
+            }
+        }, TIMEOUT);
+    }
+
+    private void showWinJackpot(long coins) {
+        winDialog.setContentView(R.layout.popup);
+        TextView mPopupTextView = (TextView) winDialog.findViewById(R.id.popupTextView);
+        winDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        mPopupTextView.setText("JACKPOT\n" + coins);
+        winDialog.show();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                winDialog.dismiss();
+            }
+        }, TIMEOUT);
     }
 }
